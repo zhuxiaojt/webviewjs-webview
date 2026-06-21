@@ -411,7 +411,7 @@ impl Application {
     event_loop.run_return(|event, _window_target: &tao::event_loop::EventLoopWindowTarget<()>, control_flow: &mut ControlFlow| {
       *control_flow = ControlFlow::Poll;
       match event {
-        Event::WindowEvent { window_id, event } => {
+        Event::WindowEvent { window_id, event, .. } => {
           handle_window_event(state, window_id, event);
         }
         Event::NewEvents(StartCause::Init) => {

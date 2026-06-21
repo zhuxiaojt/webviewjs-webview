@@ -404,12 +404,12 @@ impl BrowserWindow {
 
   #[napi]
   pub fn is_focused(&self) -> bool {
-    self.window.has_focus()
+    self.window.is_focused()
   }
 
   #[napi]
   pub fn is_visible(&self) -> bool {
-    self.window.is_visible().unwrap_or(false)
+    self.window.is_visible()
   }
 
   #[napi]
@@ -439,7 +439,7 @@ impl BrowserWindow {
 
   #[napi]
   pub fn is_minimized(&self) -> bool {
-    self.window.is_minimized().unwrap_or(false)
+    self.window.is_minimized()
   }
 
   #[napi]
@@ -634,8 +634,8 @@ impl BrowserWindow {
   #[napi(getter)]
   pub fn get_theme(&self) -> Theme {
     match self.window.theme() {
-      Some(tao::window::Theme::Light) => Theme::Light,
-      Some(tao::window::Theme::Dark) => Theme::Dark,
+      tao::window::Theme::Light => Theme::Light,
+      tao::window::Theme::Dark => Theme::Dark,
       _ => Theme::System,
     }
   }
@@ -754,7 +754,7 @@ impl BrowserWindow {
 
   #[napi]
   pub fn set_content_protection(&self, enabled: bool) {
-    self.window.set_content_protected(enabled);
+    self.window.set_content_protection(enabled);
   }
 
   #[napi]
@@ -788,6 +788,7 @@ impl BrowserWindow {
       None => None,
       Some(Fullscreen::Borderless(_)) => Some(FullscreenType::Borderless),
       Some(Fullscreen::Exclusive(_)) => Some(FullscreenType::Exclusive),
+      Some(_) => None,
     }
   }
 
@@ -909,12 +910,12 @@ impl BrowserWindow {
 
   /// When `true` the window ignores mouse input (click-through). Supported on
   /// Windows and macOS; a no-op on other platforms.
+  ///
+  /// Note: tao 0.34 does not expose a native cursor hit-test API, so this
+  /// method is currently a no-op.
   #[napi]
-  pub fn set_ignore_cursor_events(&self, ignore: bool) -> Result<()> {
-    self
-      .window
-      .set_cursor_hittest(!ignore)
-      .map_err(|e| napi::Error::new(napi::Status::GenericFailure, e.to_string()))
+  pub fn set_ignore_cursor_events(&self, _ignore: bool) -> Result<()> {
+    Ok(())
   }
 
   // ── Taskbar ─────────────────────────────────────────────────────────────────
@@ -947,7 +948,7 @@ impl From<CursorType> for CursorIcon {
     match c {
       CursorType::Default => CursorIcon::Default,
       CursorType::Crosshair => CursorIcon::Crosshair,
-      CursorType::Hand => CursorIcon::Pointer,
+      CursorType::Hand => CursorIcon::Hand,
       CursorType::Arrow => CursorIcon::Default,
       CursorType::Move => CursorIcon::Move,
       CursorType::Text => CursorIcon::Text,
@@ -1044,7 +1045,7 @@ fn monitor_to_js(m: tao::monitor::MonitorHandle) -> Monitor {
           height: v.size().height,
         },
         bit_depth: v.bit_depth(),
-        refresh_rate: (v.refresh_rate_millihertz() / 1000) as u16,
+        refresh_rate: v.refresh_rate(),
       })
       .collect(),
   }
