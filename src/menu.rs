@@ -79,7 +79,7 @@ pub fn create_menu_from_options(options: MenuOptions) -> Result<Menu> {
 pub fn init_menu_for_window(menu: &Menu, window: &tao::window::Window) -> Result<()> {
   #[cfg(target_os = "windows")]
   {
-    use tao::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use tao::rwh_06::{HasWindowHandle, RawWindowHandle};
     if let Ok(handle) = window.window_handle() {
       if let RawWindowHandle::Win32(h) = handle.as_raw() {
         unsafe {
