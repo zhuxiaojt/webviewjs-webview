@@ -1,8 +1,10 @@
-# `@webviewjs/webview`
+# `@nexfteam/whynottao`
+
+A fork of [@webviewjs/webview](https://github.com/webviewjs/webview)
 
 ![https://github.com/webviewjs/webview/actions](https://github.com/webviewjs/webview/workflows/CI/badge.svg)
 
-Robust cross-platform webview library for Node.js written in Rust. It is a native binding to [winit](https://github.com/rust-windowing/winit) and [wry](https://github.com/tauri-apps/wry) allowing you to easily manage cross platform windowing and webview.
+Robust cross-platform webview library for Node.js written in Rust. It is a native binding to [tao](https://github.com/tauri-apps/tao) and [wry](https://github.com/tauri-apps/wry) allowing you to easily manage cross platform windowing and webview.
 
 ## Highlights
 
@@ -20,7 +22,7 @@ Robust cross-platform webview library for Node.js written in Rust. It is a nativ
 # Installation
 
 ```bash
-npm install @webviewjs/webview
+npm install @nexfteam/whynottao
 ```
 
 # Supported platforms
@@ -45,9 +47,9 @@ npm install @webviewjs/webview
 ## Load external url
 
 ```js
-import { Application } from '@webviewjs/webview';
+import { Application } from '@nexfteam/whynottao';
 // or
-const { Application } = require('@webviewjs/webview');
+const { Application } = require('@nexfteam/whynottao');
 
 const app = new Application();
 const window = app.createBrowserWindow();
@@ -123,7 +125,7 @@ WebviewJS provides a cross-platform menu system that works on macOS, Windows, an
 ### Basic Menu Setup
 
 ```js
-import { Application } from '@webviewjs/webview';
+import { Application } from '@nexfteam/whynottao';
 
 const app = new Application();
 
@@ -159,7 +161,7 @@ app.run();
 ### Menu Event Handling
 
 ```js
-import { Application, WebviewApplicationEvent } from '@webviewjs/webview';
+import { Application, WebviewApplicationEvent } from '@nexfteam/whynottao';
 
 const app = new Application();
 

@@ -1,3 +1,3 @@
-# `@webviewjs/webview-android-arm64`
+# `@nexfteam/whynottao-android-arm64`
 
-This is the **aarch64-linux-android** binary for `@webviewjs/webview`
+This is the **aarch64-linux-android** binary for `@nexfteam/whynottao`

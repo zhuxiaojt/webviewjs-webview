@@ -1,3 +1,3 @@
-# `@webviewjs/webview-darwin-arm64`
+# `@nexfteam/whynottao-darwin-arm64`
 
-This is the **aarch64-apple-darwin** binary for `@webviewjs/webview`
+This is the **aarch64-apple-darwin** binary for `@nexfteam/whynottao`

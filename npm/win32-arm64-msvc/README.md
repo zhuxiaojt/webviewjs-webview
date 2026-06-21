@@ -1,3 +1,3 @@
-# `@webviewjs/webview-win32-arm64-msvc`
+# `@nexfteam/whynottao-win32-arm64-msvc`
 
-This is the **aarch64-pc-windows-msvc** binary for `@webviewjs/webview`
+This is the **aarch64-pc-windows-msvc** binary for `@nexfteam/whynottao`

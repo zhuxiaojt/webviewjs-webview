@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-win32-arm64-msvc",
+  "name": "@nexfteam/whynottao-win32-arm64-msvc",
   "version": "0.1.4",
   "cpu": [
     "arm64"

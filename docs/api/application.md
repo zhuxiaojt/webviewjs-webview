@@ -3,7 +3,7 @@
 The root object that owns the event loop and all windows.
 
 ```js
-import { Application } from '@webviewjs/webview';
+import { Application } from '@nexfteam/whynottao';
 const app = new Application();
 ```
 

@@ -1,3 +1,3 @@
-# `@webviewjs/webview-linux-arm-gnueabihf`
+# `@nexfteam/whynottao-linux-arm-gnueabihf`
 
-This is the **armv7-unknown-linux-gnueabihf** binary for `@webviewjs/webview`
+This is the **armv7-unknown-linux-gnueabihf** binary for `@nexfteam/whynottao`

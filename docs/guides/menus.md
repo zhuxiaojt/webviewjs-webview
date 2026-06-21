@@ -3,7 +3,7 @@
 ## Basic setup
 
 ```js
-import { Application, WebviewApplicationEvent } from '@webviewjs/webview';
+import { Application, WebviewApplicationEvent } from '@nexfteam/whynottao';
 
 const app = new Application();
 

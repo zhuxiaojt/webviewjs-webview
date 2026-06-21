@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-android-arm-eabi",
+  "name": "@nexfteam/whynottao-android-arm-eabi",
   "version": "0.1.4",
   "cpu": [
     "arm"

@@ -1,3 +1,3 @@
-# `@webviewjs/webview-android-arm-eabi`
+# `@nexfteam/whynottao-android-arm-eabi`
 
-This is the **armv7-linux-androideabi** binary for `@webviewjs/webview`
+This is the **armv7-linux-androideabi** binary for `@nexfteam/whynottao`

@@ -10,7 +10,7 @@ WebviewJS on Windows uses the **WebView2** engine (Chromium-based).
 Check the installed version at runtime:
 
 ```js
-import { getWebviewVersion } from '@webviewjs/webview';
+import { getWebviewVersion } from '@nexfteam/whynottao';
 console.log(getWebviewVersion()); // e.g. "128.0.2739.42"
 ```
 

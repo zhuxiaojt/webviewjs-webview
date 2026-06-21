@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-linux-ia32-gnu",
+  "name": "@nexfteam/whynottao-linux-ia32-gnu",
   "version": "0.1.4",
   "cpu": [
     "ia32"

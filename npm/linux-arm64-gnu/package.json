@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-linux-arm64-gnu",
+  "name": "@nexfteam/whynottao-linux-arm64-gnu",
   "version": "0.1.4",
   "cpu": [
     "arm64"

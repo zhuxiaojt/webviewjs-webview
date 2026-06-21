@@ -3,7 +3,7 @@
 ## Minimal example
 
 ```js
-import { Application, BrowserWindow } from '@webviewjs/webview';
+import { Application, BrowserWindow } from '@nexfteam/whynottao';
 
 const app = new Application();
 

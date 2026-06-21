@@ -24,7 +24,7 @@ sudo pacman -S webkit2gtk-4.1 xdotool
 ## NPM
 
 ```bash
-npm install @webviewjs/webview
+npm install @nexfteam/whynottao
 ```
 
 ## Building from source

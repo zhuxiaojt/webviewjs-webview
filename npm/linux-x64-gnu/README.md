@@ -1,3 +1,3 @@
-# `@webviewjs/webview-linux-x64-gnu`
+# `@nexfteam/whynottao-linux-x64-gnu`
 
-This is the **x86_64-unknown-linux-gnu** binary for `@webviewjs/webview`
+This is the **x86_64-unknown-linux-gnu** binary for `@nexfteam/whynottao`

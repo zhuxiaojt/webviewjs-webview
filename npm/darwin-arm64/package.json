@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-darwin-arm64",
+  "name": "@nexfteam/whynottao-darwin-arm64",
   "version": "0.1.4",
   "cpu": [
     "arm64"

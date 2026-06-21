@@ -1,5 +1,5 @@
 {
-  "name": "@webviewjs/webview-android-arm64",
+  "name": "@nexfteam/whynottao-android-arm64",
   "version": "0.1.4",
   "cpu": [
     "arm64"

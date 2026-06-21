@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@webviewjs/webview",
+      "name": "@nexfteam/whynottao",
       "devDependencies": {
         "@napi-rs/cli": "^3.5.1",
         "@swc-node/register": "^1.11.1",

@@ -5,7 +5,7 @@ Custom protocols handle URL schemes such as `app://` without starting a local HT
 ```js
 import { readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
-import { Application } from '@webviewjs/webview';
+import { Application } from '@nexfteam/whynottao';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',

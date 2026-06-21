@@ -1,3 +1,3 @@
-# `@webviewjs/webview-win32-ia32-msvc`
+# `@nexfteam/whynottao-win32-ia32-msvc`
 
-This is the **i686-pc-windows-msvc** binary for `@webviewjs/webview`
+This is the **i686-pc-windows-msvc** binary for `@nexfteam/whynottao`

@@ -1,3 +1,3 @@
-# `@webviewjs/webview-linux-arm64-gnu`
+# `@nexfteam/whynottao-linux-arm64-gnu`
 
-This is the **aarch64-unknown-linux-gnu** binary for `@webviewjs/webview`
+This is the **aarch64-unknown-linux-gnu** binary for `@nexfteam/whynottao`
