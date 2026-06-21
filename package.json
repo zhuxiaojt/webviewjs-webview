@@ -63,7 +63,7 @@
     "lint:fix": "oxlint --fix .",
     "test": "node --test __test__/*.test.*",
     "test:watch": "node --test --watch __test__/*.test.*",
-    "prepublishOnly": "napi prepublish -t npm",
+    "prepublishOnly": "echo 'Skipped'",
     "version": "napi version",
     "check": "cargo check",
     "clippy": "cargo clippy -- -D warnings",
