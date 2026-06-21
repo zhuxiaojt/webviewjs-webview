@@ -12,10 +12,9 @@ use muda::Menu;
 use napi::bindgen_prelude::*;
 use napi::Result;
 use napi_derive::napi;
-use winit::{
-  application::ApplicationHandler,
+use tao::{
   event::WindowEvent,
-  event_loop::{ActiveEventLoop, EventLoop},
+  event_loop::EventLoop,
   window::{Window, WindowId},
 };
 
@@ -142,54 +141,42 @@ impl AppState {
   }
 }
 
-// ── ApplicationHandler ────────────────────────────────────────────────────────
+// ── Event handling ─────────────────────────────────────────────────────────────
 
-struct AppHandler<'a>(&'a mut AppState);
+fn handle_window_event(state: &mut AppState, window_id: WindowId, event: WindowEvent) {
+  if state.should_exit {
+    return;
+  }
 
-impl ApplicationHandler for AppHandler<'_> {
-  fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
-
-  fn window_event(
-    &mut self,
-    _event_loop: &ActiveEventLoop,
-    window_id: WindowId,
-    event: WindowEvent,
-  ) {
-    let state = &mut self.0;
-    if state.should_exit {
-      return;
-    }
-
-    match event {
-      WindowEvent::Resized(new_size) => {
-        if let Some(views) = state.webviews.get(&window_id) {
-          let rect = wry::Rect {
-            position: ::dpi::PhysicalPosition::new(0_i32, 0_i32).into(),
-            size: ::dpi::PhysicalSize::new(new_size.width, new_size.height).into(),
-          };
-          for wv in views.borrow().iter() {
-            let _ = wv.set_bounds(rect);
-          }
+  match event {
+    WindowEvent::Resized(new_size) => {
+      if let Some(views) = state.webviews.get(&window_id) {
+        let rect = wry::Rect {
+          position: ::dpi::PhysicalPosition::new(0_i32, 0_i32).into(),
+          size: ::dpi::PhysicalSize::new(new_size.width, new_size.height).into(),
+        };
+        for wv in views.borrow().iter() {
+          let _ = wv.set_bounds(rect);
         }
       }
-      WindowEvent::CloseRequested => {
-        if let Some(win) = state.windows.remove(&window_id) {
-          win.set_visible(false);
-        }
+    }
+    WindowEvent::CloseRequested => {
+      if let Some(win) = state.windows.remove(&window_id) {
+        win.set_visible(false);
+      }
+      state.fire(ApplicationEvent {
+        event: WebviewApplicationEvent::WindowCloseRequested,
+        custom_menu_event: None,
+      });
+      if state.windows.is_empty() {
         state.fire(ApplicationEvent {
-          event: WebviewApplicationEvent::WindowCloseRequested,
+          event: WebviewApplicationEvent::ApplicationCloseRequested,
           custom_menu_event: None,
         });
-        if state.windows.is_empty() {
-          state.fire(ApplicationEvent {
-            event: WebviewApplicationEvent::ApplicationCloseRequested,
-            custom_menu_event: None,
-          });
-          state.should_exit = true;
-        }
+        state.should_exit = true;
       }
-      _ => {}
     }
+    _ => {}
   }
 }
 
@@ -208,28 +195,13 @@ pub struct Application {
 impl Application {
   #[napi(constructor)]
   pub fn new(env: Env, _options: Option<ApplicationOptions>) -> Result<Self> {
-    // On macOS, disable winit's built-in default menu so it doesn't overwrite
-    // the muda-managed menu bar on the first pump iteration.
     #[cfg(target_os = "macos")]
     let event_loop = {
-      use winit::platform::macos::EventLoopBuilderExtMacOS;
-      EventLoop::builder()
-        .with_default_menu(false)
-        .build()
-        .map_err(|e| {
-          napi::Error::new(
-            napi::Status::GenericFailure,
-            format!("Failed to create event loop: {}", e),
-          )
-        })?
+      use tao::event_loop::EventLoopBuilder;
+      EventLoopBuilder::new().build()
     };
     #[cfg(not(target_os = "macos"))]
-    let event_loop = EventLoop::new().map_err(|e| {
-      napi::Error::new(
-        napi::Status::GenericFailure,
-        format!("Failed to create event loop: {}", e),
-      )
-    })?;
+    let event_loop = EventLoop::new();
 
     // On macOS install a default app menu immediately so the menu bar is
     // functional from the start.  Store it in global_menu so the ObjC delegate
@@ -330,12 +302,12 @@ impl Application {
     )?;
 
     if let Ok(mut ids) = self.window_ids.lock() {
-      ids.insert(format!("{:?}", window.winit_window_id()), window.id());
+      ids.insert(format!("{:?}", window.tao_window_id()), window.id());
     }
 
     // Track the window so pump_events can hide it on CloseRequested and resize
     // its webviews on Resized (winit bypasses wry's WM_SIZE subclass proc).
-    let wid = window.winit_window_id();
+    let wid = window.tao_window_id();
     self.state.windows.insert(wid, Arc::clone(&window.window));
     self.state.webviews.insert(wid, window.webviews_shared());
 
@@ -359,7 +331,7 @@ impl Application {
     #[cfg(target_os = "android")]
     let window = BrowserWindow::new(event_loop, options, true, Rc::new(RefCell::new(None)))?;
 
-    let wid = window.winit_window_id();
+    let wid = window.tao_window_id();
     self.state.windows.insert(wid, Arc::clone(&window.window));
     self.state.webviews.insert(wid, window.webviews_shared());
 
@@ -396,12 +368,14 @@ impl Application {
     Ok(())
   }
 
-  /// Pump the winit event loop once without blocking. Returns `true` while
+  /// Pump pending window events without blocking.  Returns `true` while
   /// the app is alive, `false` when it should stop. Drive this from a JS
   /// `setInterval` via the `run()` wrapper in `index.js`.
   #[napi]
   pub fn pump_events(&mut self) -> bool {
-    use winit::platform::pump_events::EventLoopExtPumpEvents;
+    use tao::platform::run_return::EventLoopExtRunReturn;
+    use tao::event::{Event, StartCause};
+    use tao::event_loop::ControlFlow;
 
     if self.state.should_exit {
       return false;
@@ -434,7 +408,21 @@ impl Application {
     // exited until reset_runner() fires, which can cause the next pump to
     // re-emit Init/Resumed and confuse the state machine.  Instead we
     // hide windows and let the JS side stop the interval when we return false.
-    event_loop.pump_app_events(Some(std::time::Duration::ZERO), &mut AppHandler(state));
+    event_loop.run_return(|event, _window_target: &tao::event_loop::EventLoopWindowTarget<()>, control_flow: &mut ControlFlow| {
+      *control_flow = ControlFlow::Poll;
+      match event {
+        Event::WindowEvent { window_id, event } => {
+          handle_window_event(state, window_id, event);
+        }
+        Event::NewEvents(StartCause::Init) => {
+          // re-init event on each pump; just continue
+        }
+        _ => {}
+      }
+      if state.should_exit {
+        *control_flow = ControlFlow::ExitWithCode(0);
+      }
+    });
 
     !state.should_exit
   }

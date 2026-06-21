@@ -8,7 +8,7 @@ use napi::{
   Env, Result,
 };
 use napi_derive::*;
-use winit::window::Window;
+use tao::window::Window;
 use wry::{http::Request, Rect, WebViewBuilder};
 
 use crate::{browser_window::next_protocol_id, HeaderData, IpcMessage};

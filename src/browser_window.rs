@@ -12,12 +12,10 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use std::sync::Arc;
-use winit::{
+use tao::{
   dpi::{LogicalPosition, LogicalSize, PhysicalPosition, PhysicalSize},
   event_loop::EventLoop,
-  window::{
-    CursorIcon, Fullscreen, Icon, Window, WindowAttributes, WindowButtons, WindowId, WindowLevel,
-  },
+  window::{CursorIcon, Fullscreen, Icon, Window, WindowBuilder, WindowId},
 };
 
 #[cfg(not(target_os = "android"))]
@@ -220,85 +218,78 @@ impl BrowserWindow {
   ) -> Result<Self> {
     let options = options.unwrap_or_default();
 
-    let mut attrs = WindowAttributes::default();
+    let mut builder = WindowBuilder::new();
 
     if let Some(resizable) = options.resizable {
-      attrs = attrs.with_resizable(resizable);
+      builder = builder.with_resizable(resizable);
     }
 
     if let Some(width) = options.width {
       if let Some(logical) = options.logical {
         if logical {
-          attrs = attrs.with_inner_size(LogicalSize::new(width, options.height.unwrap()));
+          builder = builder.with_inner_size(LogicalSize::new(width, options.height.unwrap()));
         } else {
-          attrs = attrs.with_inner_size(PhysicalSize::new(width, options.height.unwrap()));
+          builder = builder.with_inner_size(PhysicalSize::new(width, options.height.unwrap()));
         }
       } else {
-        attrs = attrs.with_inner_size(PhysicalSize::new(width, options.height.unwrap()));
+        builder = builder.with_inner_size(PhysicalSize::new(width, options.height.unwrap()));
       }
     }
 
     if let Some(x) = options.x {
       if let Some(logical) = options.logical {
         if logical {
-          attrs = attrs.with_position(LogicalPosition::new(x, options.y.unwrap()));
+          builder = builder.with_position(LogicalPosition::new(x, options.y.unwrap()));
         } else {
-          attrs = attrs.with_position(PhysicalPosition::new(x, options.y.unwrap()));
+          builder = builder.with_position(PhysicalPosition::new(x, options.y.unwrap()));
         }
       } else {
-        attrs = attrs.with_position(PhysicalPosition::new(x, options.y.unwrap()));
+        builder = builder.with_position(PhysicalPosition::new(x, options.y.unwrap()));
       }
     }
 
     if let Some(visible) = options.visible {
-      attrs = attrs.with_visible(visible);
+      builder = builder.with_visible(visible);
     }
 
     if let Some(decorations) = options.decorations {
-      attrs = attrs.with_decorations(decorations);
+      builder = builder.with_decorations(decorations);
     }
 
     if let Some(transparent) = options.transparent {
-      attrs = attrs.with_transparent(transparent);
+      builder = builder.with_transparent(transparent);
     }
 
     if let Some(maximized) = options.maximized {
-      attrs = attrs.with_maximized(maximized);
+      builder = builder.with_maximized(maximized);
     }
 
     if let Some(focused) = options.focused {
-      attrs = attrs.with_active(focused);
+      builder.window.focused = focused;
     }
 
     if let Some(content_protection) = options.content_protection {
-      attrs = attrs.with_content_protected(content_protection);
+      builder.window.content_protection = content_protection;
     }
 
     // Window level: always_on_top takes priority over always_on_bottom
-    let level = match (options.always_on_top, options.always_on_bottom) {
-      (Some(true), _) => Some(WindowLevel::AlwaysOnTop),
-      (_, Some(true)) => Some(WindowLevel::AlwaysOnBottom),
-      _ => None,
-    };
-    if let Some(level) = level {
-      attrs = attrs.with_window_level(level);
+    if options.always_on_top == Some(true) {
+      builder = builder.with_always_on_top(true);
+    } else if options.always_on_bottom == Some(true) {
+      builder = builder.with_always_on_bottom(true);
     }
 
-    // Minimizable / maximizable via enabled buttons
-    {
-      let mut buttons = WindowButtons::all();
-      if options.maximizable == Some(false) {
-        buttons.remove(WindowButtons::MAXIMIZE);
-      }
-      if options.minimizable == Some(false) {
-        buttons.remove(WindowButtons::MINIMIZE);
-      }
-      attrs = attrs.with_enabled_buttons(buttons);
+    // Minimizable / maximizable
+    if options.maximizable == Some(false) {
+      builder = builder.with_maximizable(false);
+    }
+    if options.minimizable == Some(false) {
+      builder = builder.with_minimizable(false);
     }
 
     #[cfg(target_os = "macos")]
     if options.visible_on_all_workspaces == Some(true) {
-      attrs = attrs.with_visible(true);
+      builder = builder.with_visible(true);
     }
 
     if let Some(fullscreen) = options.fullscreen {
@@ -306,15 +297,15 @@ impl BrowserWindow {
         FullscreenType::Borderless => Some(Fullscreen::Borderless(None)),
         FullscreenType::Exclusive => Some(Fullscreen::Borderless(None)), // best-effort
       };
-      attrs = attrs.with_fullscreen(fs);
+      builder = builder.with_fullscreen(fs);
     }
 
     if let Some(title) = options.title {
-      attrs = attrs.with_title(&title);
+      builder = builder.with_title(&title);
     }
 
     #[allow(deprecated)]
-    let window = event_loop.create_window(attrs).map_err(|e| {
+    let window = builder.build(event_loop).map_err(|e| {
       napi::Error::new(
         napi::Status::GenericFailure,
         format!("Failed to create window: {}", e),
@@ -428,23 +419,17 @@ impl BrowserWindow {
 
   #[napi]
   pub fn is_closable(&self) -> bool {
-    self.window.enabled_buttons().contains(WindowButtons::CLOSE)
+    self.window.is_closable()
   }
 
   #[napi]
   pub fn is_maximizable(&self) -> bool {
-    self
-      .window
-      .enabled_buttons()
-      .contains(WindowButtons::MAXIMIZE)
+    self.window.is_maximizable()
   }
 
   #[napi]
   pub fn is_minimizable(&self) -> bool {
-    self
-      .window
-      .enabled_buttons()
-      .contains(WindowButtons::MINIMIZE)
+    self.window.is_minimizable()
   }
 
   #[napi]
@@ -474,35 +459,17 @@ impl BrowserWindow {
 
   #[napi]
   pub fn set_closable(&self, closable: bool) {
-    let mut buttons = self.window.enabled_buttons();
-    if closable {
-      buttons.insert(WindowButtons::CLOSE);
-    } else {
-      buttons.remove(WindowButtons::CLOSE);
-    }
-    self.window.set_enabled_buttons(buttons);
+    self.window.set_closable(closable);
   }
 
   #[napi]
   pub fn set_maximizable(&self, maximizable: bool) {
-    let mut buttons = self.window.enabled_buttons();
-    if maximizable {
-      buttons.insert(WindowButtons::MAXIMIZE);
-    } else {
-      buttons.remove(WindowButtons::MAXIMIZE);
-    }
-    self.window.set_enabled_buttons(buttons);
+    self.window.set_maximizable(maximizable);
   }
 
   #[napi]
   pub fn set_minimizable(&self, minimizable: bool) {
-    let mut buttons = self.window.enabled_buttons();
-    if minimizable {
-      buttons.insert(WindowButtons::MINIMIZE);
-    } else {
-      buttons.remove(WindowButtons::MINIMIZE);
-    }
-    self.window.set_enabled_buttons(buttons);
+    self.window.set_minimizable(minimizable);
   }
 
   #[napi]
@@ -660,15 +627,15 @@ impl BrowserWindow {
   }
 
   /// Returns the underlying winit WindowId (for internal tracking).
-  pub fn winit_window_id(&self) -> WindowId {
+  pub fn tao_window_id(&self) -> WindowId {
     self.window.id()
   }
 
   #[napi(getter)]
   pub fn get_theme(&self) -> Theme {
     match self.window.theme() {
-      Some(winit::window::Theme::Light) => Theme::Light,
-      Some(winit::window::Theme::Dark) => Theme::Dark,
+      Some(tao::window::Theme::Light) => Theme::Light,
+      Some(tao::window::Theme::Dark) => Theme::Dark,
       _ => Theme::System,
     }
   }
@@ -676,8 +643,8 @@ impl BrowserWindow {
   #[napi]
   pub fn set_theme(&self, theme: Theme) {
     let t = match theme {
-      Theme::Light => Some(winit::window::Theme::Light),
-      Theme::Dark => Some(winit::window::Theme::Dark),
+      Theme::Light => Some(tao::window::Theme::Light),
+      Theme::Dark => Some(tao::window::Theme::Dark),
       _ => None,
     };
     self.window.set_theme(t);
@@ -757,7 +724,7 @@ impl BrowserWindow {
 
   #[napi]
   pub fn focus(&self) {
-    self.window.focus_window();
+    self.window.set_focus();
   }
 
   #[napi]
@@ -792,20 +759,22 @@ impl BrowserWindow {
 
   #[napi]
   pub fn set_always_on_top(&self, enabled: bool) {
-    self.window.set_window_level(if enabled {
-      WindowLevel::AlwaysOnTop
+    if enabled {
+      self.window.set_always_on_top(true);
     } else {
-      WindowLevel::Normal
-    });
+      self.window.set_always_on_bottom(false);
+      self.window.set_always_on_top(false);
+    }
   }
 
   #[napi]
   pub fn set_always_on_bottom(&self, enabled: bool) {
-    self.window.set_window_level(if enabled {
-      WindowLevel::AlwaysOnBottom
+    if enabled {
+      self.window.set_always_on_bottom(true);
     } else {
-      WindowLevel::Normal
-    });
+      self.window.set_always_on_top(false);
+      self.window.set_always_on_bottom(false);
+    }
   }
 
   #[napi]
@@ -956,7 +925,7 @@ impl BrowserWindow {
   pub fn set_skip_taskbar(&self, skip: bool) {
     #[cfg(target_os = "windows")]
     {
-      use winit::platform::windows::WindowExtWindows;
+      use tao::platform::windows::WindowExtWindows;
       self.window.set_skip_taskbar(skip);
     }
     #[cfg(not(target_os = "windows"))]
@@ -1055,7 +1024,7 @@ pub(crate) fn next_protocol_id(counter: &ProtocolCounterRef) -> u64 {
   id
 }
 
-fn monitor_to_js(m: winit::monitor::MonitorHandle) -> Monitor {
+fn monitor_to_js(m: tao::monitor::MonitorHandle) -> Monitor {
   Monitor {
     name: m.name(),
     scale_factor: m.scale_factor(),

@@ -76,10 +76,10 @@ pub fn create_menu_from_options(options: MenuOptions) -> Result<Menu> {
 
 /// Attach `menu` to a native window on the platforms that support it.
 #[cfg(not(target_os = "android"))]
-pub fn init_menu_for_window(menu: &Menu, window: &winit::window::Window) -> Result<()> {
+pub fn init_menu_for_window(menu: &Menu, window: &tao::window::Window) -> Result<()> {
   #[cfg(target_os = "windows")]
   {
-    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use tao::raw_window_handle::{HasWindowHandle, RawWindowHandle};
     if let Ok(handle) = window.window_handle() {
       if let RawWindowHandle::Win32(h) = handle.as_raw() {
         unsafe {
